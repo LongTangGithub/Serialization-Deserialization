@@ -1,10 +1,13 @@
+package Serialization;
+
 import java.io.Serializable;
 import java.util.Objects;
 
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
+import java.nio.charset.StandardCharsets;
 import java.io.IOException;
-import java.io.BufferedReader;
 
 /**
  * Represent a jacket object with brand, color, and price attributes
@@ -52,11 +55,13 @@ public class Jackets implements Serializable {
      */
     public static void serializeJacketCSV(Jackets jacket, String filename){
         try{
-            FileWriter serialJacketInfo = new FileWriter(filename);
+            Path filePath = Path.of(filename);
+            StringBuilder serialJacketInfo = new StringBuilder();
             serialJacketInfo.append("Brand, Color, Price\n");
-
             serialJacketInfo.append(jacket.getBrand() + ", " + jacket.getColor() + ", " + jacket.getPrice() + "\n");
-            serialJacketInfo.close();
+
+            // The StandardOpenOption.CREATE and StandardOpenOption.WRITE options are used to create the file if it doesn't exist and overwrite its contents if it does.
+            Files.writeString(filePath, serialJacketInfo.toString(), StandardCharsets.UTF_8, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
             System.out.println("Jacket Info serialized to " + filename);
         }catch (IOException e){
             e.printStackTrace();
@@ -82,26 +87,24 @@ public class Jackets implements Serializable {
 
         Jackets jacket = null;
         try{
-            FileReader reader = new FileReader(filename);
-            BufferedReader br = new BufferedReader(reader);
+            Path filePath = Path.of(filename);
 
-            br.readLine();
+            String fileContent = Files.readString(filePath, StandardCharsets.UTF_8);
 
-            String currLine = br.readLine();
-            if(currLine != null){
-                String[] values = currLine.split(",");
-                // if the array length is 3 [Brand, Color, Price]
-                if(values.length == 3){
+
+            String[] lines = fileContent.split("\\r?\\n");     // Split the content into lines
+
+            if(lines.length >  1){                                  // Check if one line exists
+                String[] values = lines[1].split(",");        // Extract the values from the second line (skipping the header)
+                if(values.length == 3){                             // if the array length is 3 [Brand, Color, Price]
                     String brand = values[0].trim();
                     String color = values[1].trim();
                     int price = Integer.parseInt(values[2].trim());  // the parseInt doesn't know how to parse a space
 
-                    // creating a new jacket object with the extracted values and assign to it
-                    jacket = new Jackets(brand, color, price);
+
+                    jacket = new Jackets(brand, color, price);      // creating a new jacket object with the extracted values and assign to it
                 }
             }
-            br.close();
-            reader.close();
         }catch(IOException e ){
             e.printStackTrace();
         }catch(NumberFormatException e){
@@ -138,7 +141,7 @@ public class Jackets implements Serializable {
     }
 
     /**
-     * By overriding the equals() method in the Jacket class, it allows the attributes of two Jackets object to be compared
+     * By overriding the equals() method in the Jacket class, it allows the attributes of two Serialization.Jackets object to be compared
      * and determine if they're equal
      *
      * Note:
