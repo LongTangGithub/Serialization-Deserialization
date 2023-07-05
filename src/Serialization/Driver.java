@@ -1,4 +1,4 @@
-
+package Serialization;
 
 import static Serialization.Jackets.deserialize;
 import static Serialization.Jackets.serializeJacketCSV;
